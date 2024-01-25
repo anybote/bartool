@@ -1,0 +1,316 @@
+:showtitle:
+:toc: left
+:icons: font
+
+= Bartool
+
+Bartool is a tool for quickly looking up recipes by applying useful filters.
+
+Currently, filters include:
+
+* only returning recipes that can be made with the ingredients found in your pantry (a file listing all the ingredients you have available to you)
+* only returning recipes that contain all of provided required ingredients
+* returning recipes that meet the above requirements, but allowing for substitutions with similar ingredients
+* any combination of the above
+
+The list of ingredients, list of recipes, and pantry is all stored in an easy to read and update format so you can add in you can customize it to suite your needs by using a text editor.
+
+Most recipes are adaptations from the book "The Spirits" by Richard Godwin.
+
+== How to install
+
+=== Install the prebuilt binary
+
+=== Install the crate
+
+=== Install from source
+
+1. install rust via https://www.rust-lang.org/tools/install[rustup]
+2. clone this repository
+3. build the source via `cargo build -r`
+4. move the binary to somewhere in your path, e.x. `cp target/release/bt /usr/local/bin`
+
+_optional cleanup_
+
+1. remove the source, it's no longer needed `cd .. && rm -rf bt`
+2. uninstall rust if you want, it's no longer needed `rustup self uninstall`
+
+== Instructions & Examples
+
+=== Help and setup
+
+`bt -h` for a list of commands
+
+`bt init` to write the default example recipes, ingredients, and pantry file to disk. You can use them as is, or customize them from there. You're encouraged to update the pantry file with the ingredients you have on hand. More on what these files do below.
+
+==== Pantry File
+
+Is used to store what ingredients you have on hand and is required by some subcommands. You provide the pantry file path to `bt` via the `-p` flag and it will filter out the recipes it outputs to only those you can make with the ingredients in your pantry. The categories (top most key in the file) of ingredients in the pantry does not matter, and is for your own organization.
+
+==== Recipes File
+
+Is used to store all the possible recipes. Recipes belong to a category (top most key), currently the only accepted category is "cocktails". Ingredients are used to search for recipes and compare against what's in your pantry. The instructions are for your own use in creating the recipe.
+
+==== Ingredients File
+
+The ingredients file stores metadata related to ingredients, including alternate names for the same ingredient and categories for multiple unique ingredients. If an ingredient has multiple names, those names can be used interchangeably in recipes, in the pantry, and when invoking `bt` with required ingredients. If two ingredients belong to the same category (besides "others") then they can be used interchangeably if `bt` is invoked with the `-a` flag. Ingredients must belong to some category, so if you wish an ingredient to have multiple names but no category, it belongs under the "others" category. If the ingredient has one name and no category, it can be safely omitted from the ingredients file.
+
+=== Usage
+
+==== Get all the recipes
+
+Not passing any arguments will return all the recipes from the recipes file. By default `bt` first looks for a file called `recipes.yaml` and if it's not found, will use a default set of recipes.
+
+[source,shell]
+----
+$ bt
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+Americano:
+  ingredients:
+    - campari
+    - club soda
+    - sweet vermouth
+
+  recipe: 25ml campari, 25ml vermouth, 50ml club soda. Pour into a glass and mix up and down. Garnish with a lemon slice.
+
+... output continues...
+----
+
+Sometimes it's useful to limit the number of recipes outputted if you're manually reading through them. The `-c` flag will allow you to pass an upper limit to the amount of recipes are returned. If a subset is returned, it will be a random sample, this way it's fun to see what you'll get!
+[source,shell]
+----
+$ bt -c 1
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Campari Smash":
+  ingredients:
+    - campari
+    - crème de rose
+    - mint leaves
+    - strawberries
+    - vodka
+
+  recipe: 40ml vodka, 20ml campari, 20ml crème de rose, 2 fresh strawberries, 5 mint leaves. Muddle the berries and mint in the bottom of the shaker. Add the rest of the ingredients and shake with ice. Strain into a cold glass. Garnish with mint.
+----
+
+==== Search for a recipe by name
+
+Just a reminder, you can easily search for a recipe via `grep` or `yq`.
+[source,shell]
+----
+$ bt | yq .Negroni
+ingredients:
+  - campari
+  - gin
+  - sweet vermouth
+recipe: 25ml of each. Pour into a glass with ice and stir. Garnish with a lemon or orange zest twist.
+----
+
+Recipe with a special character in the name, in this case a space.
+[source,shell]
+----
+$ bt | yq '.["White Lady"]'
+ingredients:
+  - egg white
+  - gin
+  - lemon juice
+  - orange liqueur
+recipe: 50ml gin, 25ml lemon juice, 20ml orange liqueur, 15ml egg white. Dry shake with no ice until the egg is frothed. Add ice and shake until cool. Strain into a glass.
+----
+
+Now with grep.
+[source,shell]
+----
+$ bt | grep -i 'white lady' -A 7
+"White Lady":
+  ingredients:
+    - egg white
+    - gin
+    - lemon juice
+    - orange liqueur
+
+  recipe: 50ml gin, 25ml lemon juice, 20ml orange liqueur, 15ml egg white. Dry shake with no ice until the egg is frothed. Add ice and shake until cool. Strain into a glass.
+----
+
+Grab all recipes with "Sour" in their name.
+[source,shell]
+----
+$ bt | yq '.["*Sour*"] | key'
+Amaretto Sour
+Angostura Sour
+Aperol Sour
+Boston Sour
+Gin Sour
+Mandorla Sour
+Pisco Sour
+Sour
+Trinidad Sour
+----
+
+Check out the https://mikefarah.gitbook.io/yq/[yq documentation] for more details on how to parse and search yaml documents.
+
+==== Filter by ingredients
+
+You can filter the output by ingredients, this will include ingredients of alternate name as defined in the ingredients file.
+[source,shell]
+----
+$ bt whiskey
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Boston Sour":
+  ingredients:
+    - golden syrup
+    - lemon juice
+    - whiskey
+
+  recipe: 50ml whiskey, 15ml lemon juice, 10ml syrup. Shake with ice and strain into a glass with ice. Garnish with a cherry and lemon slice.
+
+... output continues...
+----
+
+Passing the `-a` flag will also include recipes that have ingredients that are in the same category as the required ingredients.
+[source,shell]
+----
+$ bt whiskey -a
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Brown Derby":
+  ingredients:
+    - bourbon
+    - maple syrup
+    - pink grapefruit juice
+
+  recipe: 45ml bourbon, 30ml pink grapefruit juice, 10ml maple syrup. Shake with ice and strain into a cold glass. Garnish with a grapefruit twist.
+
+... output continues...
+----
+
+==== Only output what you can make
+
+If you pass a pantry to `bt` it will only output drinks you can make with what's in your pantry.
+[source,shell]
+----
+$ bt -p pantry.yaml
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Gin & Tonic":
+  ingredients:
+    - gin
+    - lime juice
+    - tonic water
+
+  recipe: 50ml gin, squeeze of lime juice, 100ml tonic water. Fill a glass with ice and pour in the gin. Squeeze over the lime and drop in the shell. Top with tonic water and stir.
+
+... output continues...
+----
+
+If you're indecisive what to make tonight, `bt` can help you decide. Reminder that the subset selected is random, so if you don't like this pick, just run it again.
+[source,shell]
+----
+$ bt -p pantry.yaml -c 1
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Journalist":
+  ingredients:
+    - bitters
+    - dry vermouth
+    - gin
+    - lemon juice
+    - orange liqueur
+    - sweet vermouth
+
+  recipe: 40ml gin, 10ml dry vermouth, 10ml sweet vermouth, 5ml orange liqueur, 5ml lemon juice, dash of bitters. Stir with ice and strain into a cold glass. Garnish with a cherry.
+----
+
+If you don't mind slightly deviating from the recipe, as mentioned previously, the `-a` flag will include recipes with ingredients that belong to the same category. In this case, you'll have some ingredient in your pantry that is in the same category as those in this recipe.
+[source,shell]
+----
+$ bt -p pantry.yaml -c 1 -a
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Boulevardier":
+  ingredients:
+    - bourbon
+    - campari
+    - sweet vermouth
+
+  recipe: 25ml bourbon, 25ml sweet vermouth, 25ml campari. Stir over ice in a glass. Garnish with lemon or orange slice.
+----
+
+The '-p' flag can be combined with required ingredients as well.
+[source,shell]
+----
+$ bt -p pantry.yaml whiskey
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+
+
+"Boston Sour":
+  ingredients:
+    - golden syrup
+    - lemon juice
+    - whiskey
+
+  recipe: 50ml whiskey, 15ml lemon juice, 10ml syrup. Shake with ice and strain into a glass with ice. Garnish with a cherry and lemon slice.
+
+... output continues...
+----
+
+==== What ingredients are missing from your pantry?
+
+Often it's useful to know what you might be missing, that would enable you to try some new recipes. Use the `bt missing` subcommand with the `-p` flag (required) to return the ingredients that you don't have in your pantry ordered by the number of recipes that call for this ingredient. You can add in the `-c` flag to get the top N missing ingredients.
+[source,shell]
+----
+$ bt missing -p pantry.yaml -c 10
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+# top missing ingredients:
+brandy
+bourbon
+absinthe
+grenadine
+maraschino
+light rum
+egg white
+orange bitters
+scotch
+vodka
+----
+
+As before, you can also use the `-a` flag here to not count ingredients in the same category as those already in your pantry.
+[source,shell]
+----
+$ bt missing -p pantry.yaml -c 10 -a
+# loaded recipes file from recipes.yaml...
+# loaded ingredient file from ingredients.yaml...
+# top missing ingredients:
+brandy
+absinthe
+grenadine
+egg white
+maraschino
+chartreuse
+vodka
+orange juice
+bénédictine
+fino sherry
+----
+
+== Contributing
+
+WIP
