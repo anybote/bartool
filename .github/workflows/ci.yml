@@ -1,0 +1,46 @@
+name: bt ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: cargo version
+        run: cargo --version
+      - name: rustfmt version
+        run: cargo fmt -- --version
+      - name: check style
+        run: cargo fmt -- --check
+
+  clippy-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: cargo version
+        run: cargo --version
+      - name: clippy version
+        run: cargo clippy -- --version
+      - name: clippy lint
+        run: cargo clippy --all-targets
+
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+      - name: cargo version
+        run: cargo --version
+      - name: rustc version
+        run: rustc --version
+      - name: build
+        run: cargo build --locked --all-targets --verbose
+      - name: test
+        run: cargo test --locked --all-targets --verbose
