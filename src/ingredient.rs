@@ -67,15 +67,6 @@ pub struct IngredientBook {
 }
 
 impl IngredientBook {
-    pub fn default() -> IngredientBook {
-        let ingredient_file: IngredientFile = serde_yaml::from_str(consts::ingredients::DEFAULT_INGREDIENTS)
-            .expect("error deserializing default ingredients file, default file should always be valid");
-
-        let index = IngredientBook::build_index(&ingredient_file).expect("error creating index from default ingredients file, default file should always be valid");
-
-        IngredientBook { _path: None, index }
-    }
-
     pub fn build(path: &str) -> Result<IngredientBook> {
         let ingredient_file: IngredientFile =
             serde_yaml::from_reader(BufReader::new(File::open(path)?))?;
@@ -161,7 +152,7 @@ impl IngredientBook {
         &self,
         names: impl IntoIterator<Item = &'a String>,
     ) -> BTreeSet<String> {
-        names.into_iter().map(|n| self.expand_name(n)).flatten().collect()
+        names.into_iter().flat_map(|n| self.expand_name(n)).collect()
     }
 
     pub fn names_to_categories<'a>(
@@ -200,7 +191,18 @@ impl IngredientBook {
     }
 }
 
-#[derive(Deserialize)]
+impl Default for IngredientBook {
+    fn default() -> IngredientBook {
+        let ingredient_file: IngredientFile = serde_yaml::from_str(consts::ingredients::DEFAULT_INGREDIENTS)
+            .expect("error deserializing default ingredients file, default file should always be valid");
+
+        let index = IngredientBook::build_index(&ingredient_file).expect("error creating index from default ingredients file, default file should always be valid");
+
+        IngredientBook { _path: None, index }
+    }
+}
+
+#[derive(Deserialize, Default)]
 /// the pantry stores all the ingredients that the user has access to in order to make recipes
 pub struct Pantry {
     /// path is currently unread, but in the future will be used to distinguish between an in-memory pantry vs. one saved to disk
@@ -210,10 +212,6 @@ pub struct Pantry {
 }
 
 impl Pantry {
-    pub fn new() -> Pantry {
-        Pantry { _path: None, ingredient_names: BTreeSet::new() }
-    }
-
     pub fn build(path: &str) -> Result<Pantry> {
         let pantry: HashMap<String, Vec<String>> =
             serde_yaml::from_reader(BufReader::new(File::open(path)?))?;
@@ -354,7 +352,7 @@ mod tests {
 
         let ingredient_file = ingredient_file_from_ingredients(ingredients);
         let ingredient_book = IngredientBook::from(ingredient_file);
-        assert!(matches!(ingredient_book, Err(_)));
+        assert!(ingredient_book.is_err());
     }
 
     fn ingredient_file_from_ingredient_names(

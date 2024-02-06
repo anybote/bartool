@@ -206,16 +206,6 @@ pub struct RecipeBook {
 }
 
 impl RecipeBook {
-    pub fn default() -> RecipeBook {
-        let recipe_file: RecipeFile = serde_yaml::from_str(consts::recipes::DEFAULT_RECIPES)
-            .expect("error deserializing default recipes file, default file should always be valid");
-
-        RecipeBook {
-            _path: None,
-            cocktails: DrinkRecipe::from_all(recipe_file.cocktails),
-        }
-    }
-
     pub fn build(path: &str) -> Result<RecipeBook> {
         let recipe_file: RecipeFile =
             serde_yaml::from_reader(BufReader::new(File::open(path)?))?;
@@ -289,6 +279,18 @@ impl RecipeBook {
         }
 
         BTreeSet::from_iter(recipes)
+    }
+}
+
+impl Default for RecipeBook {
+    fn default() -> RecipeBook {
+        let recipe_file: RecipeFile = serde_yaml::from_str(consts::recipes::DEFAULT_RECIPES)
+            .expect("error deserializing default recipes file, default file should always be valid");
+
+        RecipeBook {
+            _path: None,
+            cocktails: DrinkRecipe::from_all(recipe_file.cocktails),
+        }
     }
 }
 

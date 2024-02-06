@@ -62,15 +62,15 @@ fn main() -> Result<()> {
                     bail!("a pantry file is required for this command!")
                 };
 
-                let missing_ingredients;
-                if lookup_opts.include_alt_ingredients {
-                    missing_ingredients = pantry.most_freq_missing_categories(
+                let missing_ingredients = if lookup_opts.include_alt_ingredients
+                {
+                    pantry.most_freq_missing_categories(
                         &init_recipe_book(&lookup_opts.recipes_path),
                         &init_ingredient_book(&lookup_opts.ingredients_path),
                         lookup_opts.count,
-                    );
+                    )
                 } else {
-                    missing_ingredients = pantry
+                    pantry
                         .most_freq_missing_ingredients(
                             &init_recipe_book(&lookup_opts.recipes_path),
                             &init_ingredient_book(
@@ -80,13 +80,13 @@ fn main() -> Result<()> {
                         )
                         .iter()
                         .map(|i| format!("{i}"))
-                        .collect();
-                }
+                        .collect()
+                };
 
-                if missing_ingredients.len() > 0 {
-                    println!("# top missing ingredients:\n");
-                } else {
+                if missing_ingredients.is_empty() {
                     println!("# you're not missing any ingredients, you can make every recipe in your recipe book")
+                } else {
+                    println!("# top missing ingredients:\n");
                 }
 
                 for missing_ingredient in missing_ingredients {
@@ -104,7 +104,7 @@ fn init_ingredient_book(path: &str) -> IngredientBook {
         println!("# loaded ingredient file from {path}...");
         ingredient_book
     } else {
-        let ingredient_book = IngredientBook::default();
+        let ingredient_book = Default::default();
         println!("# loaded default ingredient file...");
         ingredient_book
     }
@@ -119,7 +119,7 @@ fn init_recipe_book(path: &str) -> RecipeBook {
         println!("# loaded recipes file from {path}...");
         recipe_book
     } else {
-        let recipe_book = RecipeBook::default();
+        let recipe_book = Default::default();
         println!("# loaded default recipes file...");
         recipe_book
     }
