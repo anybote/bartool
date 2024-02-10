@@ -182,12 +182,22 @@ impl IngredientBook {
             return String::from(name);
         }
 
-        if let Some(category) = &self.ingredient(name).unwrap().category {
+        let ingredient = self.ingredient(name).unwrap();
+
+        if let Some(category) = &ingredient.category {
             // valid category found
             return category.clone();
         }
+
         // ingredient has no category, use the name as the category
-        String::from(name)
+        if ingredient.names.len() < 2 {
+            return String::from(name);
+        }
+
+        // the ingredient has multiple names, so we pick one to use as the category
+        let mut names = Vec::from_iter(&ingredient.names);
+        names.sort_unstable();
+        String::from(names[0])
     }
 }
 

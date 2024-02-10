@@ -21,14 +21,25 @@ Most recipes are adaptations from the book "The Spirits" by Richard Godwin.
 
 === Install the prebuilt binary
 
+Coming soon.
+
 === Install the crate
+
+Coming soon.
 
 === Install from source
 
 1. install rust via https://www.rust-lang.org/tools/install[rustup]
 2. clone this repository
+
+If ~/.cargo/bin is not in your PATH:
 3. build the source via `cargo build -r`
 4. move the binary to somewhere in your path, e.x. `cp target/release/bt /usr/local/bin`
+
+If ~/.cargo/bin is already in your PATH:
+3. install via `cargo install --path .`
+
+Optionally, you can strip the binary to reduce the size: `strip -s <path to bt binary>`
 
 _optional cleanup_
 
@@ -310,7 +321,3 @@ orange juice
 bénédictine
 fino sherry
 ----
-
-== Contributing
-
-WIP
