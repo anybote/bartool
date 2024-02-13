@@ -57,7 +57,7 @@ jobs:
         run: |
           OUT=${{ steps.download.outputs.download-path }}
           for build in `ls $OUT`; do
-            zip -r ${build}.zip $build
+            zip -r $OUT/$build.zip $OUT/$build
           done
       - name: test release
         run: ls ${{ steps.download.outputs.download-path }}
