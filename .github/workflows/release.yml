@@ -1,0 +1,58 @@
+name: bt release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  upload-artifact:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact-name: ubuntu-latest-bt
+            artifact-path: bt
+          - os: windows-latest
+            artifact-name: windows-latest-bt
+            artifact-path: bt.exe
+          - os: macos-latest
+            artifact-name: macos-latest-bt
+            artifact-path: bt
+          - os: macos-14
+            artifact-name: macos-14-bt
+            artifact-path: bt
+    steps:
+      - uses: actions/checkout@v4
+      - name: cargo version
+        run: cargo --version
+      - name: rustc version
+        run: rustc --version
+      - name: test
+        run: cargo test --locked --verbose
+      - name: build release
+        run: cargo build --release --locked --verbose
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: target/release/${{ matrix.artifact-path }}
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
+  create-release:
+    needs: upload-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: download artifact
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: test release
+        run: ls ${{ steps.download.outputs.download-path }}
