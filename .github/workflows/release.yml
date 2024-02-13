@@ -53,6 +53,5 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: out
-          merge-multiple: true
       - name: test release
-        run: ls ${{ steps.download.outputs.download-path }}
+        run: ls -haltr -R ${{ steps.download.outputs.download-path }}
