@@ -2,9 +2,8 @@ name: bt release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "v*.*.*"
 
 jobs:
   upload-artifact:
@@ -59,5 +58,8 @@ jobs:
           for build in `ls $OUT`; do
             zip -r $OUT/$build.zip $OUT/$build
           done
-      - name: test release
-        run: ls ${{ steps.download.outputs.download-path }}
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          files: ${{ steps.download.outputs.download-path }}/*.zip
