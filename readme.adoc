@@ -21,11 +21,9 @@ Most recipes are adaptations from the book "The Spirits" by Richard Godwin.
 
 === Install the prebuilt binary
 
-Coming soon.
-
-=== Install the crate
-
-Coming soon.
+1. navigate to the latest release
+2. download the zip for your platform (ubuntu, windows, macos-latest for intel, macos-14 for M)
+3. unzip and move the binary to your path, e.x. `mv bt /usr/local/bin`
 
 === Install from source
 
@@ -34,17 +32,10 @@ Coming soon.
 
 If ~/.cargo/bin is not in your PATH:
 3. build the source via `cargo build -r`
-4. move the binary to somewhere in your path, e.x. `cp target/release/bt /usr/local/bin`
+4. copy the binary to somewhere in your path, e.x. `cp target/release/bt /usr/local/bin`
 
 If ~/.cargo/bin is already in your PATH:
 3. install via `cargo install --path .`
-
-Optionally, you can strip the binary to reduce the size: `strip -s <path to bt binary>`
-
-_optional cleanup_
-
-1. remove the source, it's no longer needed `cd .. && rm -rf bt`
-2. uninstall rust if you want, it's no longer needed `rustup self uninstall`
 
 == Instructions & Examples
 

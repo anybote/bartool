@@ -41,6 +41,6 @@ jobs:
       - name: rustc version
         run: rustc --version
       - name: build
-        run: cargo build --locked --all-targets --verbose
+        run: cargo build --locked --verbose
       - name: test
-        run: cargo test --locked --all-targets --verbose
+        run: cargo test --locked --verbose

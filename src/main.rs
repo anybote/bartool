@@ -14,13 +14,17 @@ fn main() -> Result<()> {
         // default bt command, used for searching recipes using the pantry file and / or required ingredients
         None => {
             let pantry;
-            let pantry_opt =
-                if let Some(pantry_path) = args.lookup_opts.pantry_path {
-                    pantry = init_pantry(&pantry_path);
-                    Some(&pantry)
-                } else {
-                    None
+            let pantry_opt = if let Some(pantry_path) =
+                args.lookup_opts.pantry_path
+            {
+                pantry = match Pantry::build(&pantry_path) {
+                    Ok(pantry) => pantry,
+                    Err(_) => bail!("pantry file not found at {pantry_path}"),
                 };
+                Some(&pantry)
+            } else {
+                None
+            };
 
             let recipe_book = init_recipe_book(&args.lookup_opts.recipes_path);
 
@@ -56,8 +60,14 @@ fn main() -> Result<()> {
             },
             // lookup ingredients that are not in the pantry that enable you to make the most recipes
             Command::Missing { lookup_opts } => {
-                let pantry = if let Some(path) = lookup_opts.pantry_path {
-                    init_pantry(&path)
+                let pantry = if let Some(pantry_path) = lookup_opts.pantry_path
+                {
+                    match Pantry::build(&pantry_path) {
+                        Ok(pantry) => pantry,
+                        Err(_) => {
+                            bail!("pantry file not found at {pantry_path}")
+                        }
+                    }
                 } else {
                     bail!("a pantry file is required for this command!")
                 };
@@ -108,10 +118,6 @@ fn init_ingredient_book(path: &str) -> IngredientBook {
         println!("# loaded default ingredient file...");
         ingredient_book
     }
-}
-
-fn init_pantry(path: &str) -> Pantry {
-    Pantry::build(path).expect("unable to build pantry file: {path}")
 }
 
 fn init_recipe_book(path: &str) -> RecipeBook {
