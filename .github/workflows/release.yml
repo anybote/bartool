@@ -54,9 +54,9 @@ jobs:
           path: out
       - name: zip artifacts
         run: |
-          OUT=${{ steps.download.outputs.download-path }}
-          for build in `ls $OUT`; do
-            zip -r $OUT/$build.zip $OUT/$build
+          cd ${{ steps.download.outputs.download-path }}
+          for build in `ls .`; do
+            zip -r $build.zip $build
           done
       - name: release
         uses: softprops/action-gh-release@v1
