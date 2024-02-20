@@ -13,7 +13,7 @@ Currently, filters include:
 * returning recipes that meet the above requirements, but allowing for substitutions with similar ingredients
 * any combination of the above
 
-The list of ingredients, list of recipes, and pantry is all stored in an easy to read and update format so you can add in you can customize it to suite your needs by using a text editor.
+The list of ingredients, list of recipes, and pantry information are all stored in an easy to read and update format so that you can customize them to suite your needs.
 
 Most recipes are adaptations from the book "The Spirits" by Richard Godwin.
 
